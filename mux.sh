@@ -9,24 +9,30 @@ function mux_file {
         echo "Muxing $MKV_FILE..."
 
         VOST_EXTENSION=".VOST.mkv"
-        MKV_VOSTFR_FILE=${MKV_FILE:0:${#MKV_FILE}-4}$VOST_EXTENSION
+        MKV_VOST_FILE=${MKV_FILE:0:${#MKV_FILE}-4}$VOST_EXTENSION
         SRT_FR_FILE=${MKV_FILE:0:${#MKV_FILE}-4}.fr.srt
         SRT_EN_FILE=${MKV_FILE:0:${#MKV_FILE}-4}.en.srt
+        SRT_FR_UTF8_FILE=${MKV_FILE:0:${#MKV_FILE}-4}.fr.utf8.srt
+        SRT_EN_UTF8_FILE=${MKV_FILE:0:${#MKV_FILE}-4}.en.utf8.srt
 
-        MKVMERGE_CMD="-v -o '$MKV_VOSTFR_FILE' '$MKV_FILE'"
+        MKVMERGE_CMD="-v -o '$MKV_VOST_FILE' '$MKV_FILE'"
 
         # Check the available subtitle languages
         if [ -f $SRT_FR_FILE ]; then
-            MKVMERGE_CMD="$MKVMERGE_CMD --language \"0:fr\" --track-name \"0:Français\" --sub-charset \"0:utf-8\" -s 0 -D -A '$SRT_FR_FILE'"
+            echo "Guessing FR subtitles encoding..."
+            eval "cat '$SRT_FR_FILE' | php /volume1/homes/admin/scripts/guess.php > '$SRT_FR_UTF8_FILE'"
+            MKVMERGE_CMD="$MKVMERGE_CMD --language \"0:fr\" --track-name \"0:Français\" --sub-charset \"0:utf-8\" -s 0 -D -A '$SRT_FR_UTF8_FILE'"
         fi
 
         if [ -f $SRT_EN_FILE ]; then
-            MKVMERGE_CMD="$MKVMERGE_CMD --language \"0:en\" --track-name \"0:English\" --sub-charset \"0:utf-8\" -s 0 -D -A '$SRT_EN_FILE'"
+            echo "Guessing EN subtitles encoding..."
+            eval "cat '$SRT_EN_FILE' | php /volume1/homes/admin/scripts/guess.php > '$SRT_EN_UTF8_FILE'"
+            MKVMERGE_CMD="$MKVMERGE_CMD --language \"0:en\" --track-name \"0:English\" --sub-charset \"0:utf-8\" -s 0 -D -A '$SRT_EN_UTF8_FILE'"
         fi
 
         # Check if the output muxed file already exists (based on file name)
-        if [ -f $MKV_VOSTFR_FILE ]; then
-            echo "$MKV_VOSTFR_FILE already exists ! Aborted."
+        if [ -f $MKV_VOST_FILE ]; then
+            echo "$MKV_VOST_FILE already exists ! Aborted."
         # Check if the current file is a muxed file (based on file name)
         elif [ ${#MKV_FILE} -gt ${#VOST_EXTENSION} ] && [ -f ${MKV_FILE:0:${#MKV_FILE}-${#VOST_EXTENSION}}.mkv ]; then
             echo "$MKV_FILE seems to be itself a muxed file ! Aborted."
@@ -38,17 +44,28 @@ function mux_file {
             eval "mkvmerge $MKVMERGE_CMD"
 
             # add permissions
-            eval "chmod 666 $MKV_VOSTFR_FILE"
+            eval "chmod 666 $MKV_VOST_FILE"
 
             # add the new mkv file to the multimedia server index
-            echo "Adding $MKV_VOSTFR_FILE to the media server index..."
-            eval "/usr/syno/bin/synoindex -a '$MKV_VOSTFR_FILE'"
+            echo "Adding $MKV_VOST_FILE to the media server index..."
+            eval "/usr/syno/bin/synoindex -a '$MKV_VOST_FILE'"
+        fi
+
+        # flush temp files
+        if [ -f $SRT_FR_UTF8_FILE ]; then
+            eval "rm '$SRT_FR_UTF8_FILE'"
+        fi
+
+        if [ -f $SRT_EN_UTF8_FILE ]; then
+            eval "rm '$SRT_EN_UTF8_FILE'"
         fi
 
         # flush vars
         unset SRT_FR_FILE
-        unset SRT_EN_FILE       
-        unset MKV_VOSTFR_FILE
+        unset SRT_EN_FILE
+        unset SRT_FR_UTF8_FILE
+        unset SRT_EN_UTF8_FILE       
+        unset MKV_VOST_FILE
         unset MKV_FILE
 
     fi
