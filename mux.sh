@@ -14,19 +14,20 @@ function mux_file {
         SRT_EN_FILE=${MKV_FILE:0:${#MKV_FILE}-4}.en.srt
         SRT_FR_UTF8_FILE=${MKV_FILE:0:${#MKV_FILE}-4}.fr.utf8.srt
         SRT_EN_UTF8_FILE=${MKV_FILE:0:${#MKV_FILE}-4}.en.utf8.srt
+        GUESS_SCRIPT=$(dirname $0)/guess.php
 
         MKVMERGE_CMD="-v -o '$MKV_VOST_FILE' '$MKV_FILE'"
 
         # Check the available subtitle languages
         if [ -f $SRT_FR_FILE ]; then
             echo "Guessing FR subtitles encoding..."
-            eval "cat '$SRT_FR_FILE' | php /volume1/homes/admin/scripts/guess.php > '$SRT_FR_UTF8_FILE'"
+            eval "cat '$SRT_FR_FILE' | php '$GUESS_SCRIPT' > '$SRT_FR_UTF8_FILE'"
             MKVMERGE_CMD="$MKVMERGE_CMD --language \"0:fr\" --track-name \"0:Français\" --sub-charset \"0:utf-8\" -s 0 -D -A '$SRT_FR_UTF8_FILE'"
         fi
 
         if [ -f $SRT_EN_FILE ]; then
             echo "Guessing EN subtitles encoding..."
-            eval "cat '$SRT_EN_FILE' | php /volume1/homes/admin/scripts/guess.php > '$SRT_EN_UTF8_FILE'"
+            eval "cat '$SRT_EN_FILE' | php '$GUESS_SCRIPT' > '$SRT_EN_UTF8_FILE'"
             MKVMERGE_CMD="$MKVMERGE_CMD --language \"0:en\" --track-name \"0:English\" --sub-charset \"0:utf-8\" -s 0 -D -A '$SRT_EN_UTF8_FILE'"
         fi
 
