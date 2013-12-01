@@ -44,7 +44,7 @@ function mux_file {
             eval "mkvmerge $MKVMERGE_CMD"
 
             # add permissions
-            eval "chmod 666 $MKV_VOST_FILE"
+            eval "chmod 666 '$MKV_VOST_FILE'"
 
             # add the new mkv file to the multimedia server index
             echo "Adding $MKV_VOST_FILE to the media server index..."
