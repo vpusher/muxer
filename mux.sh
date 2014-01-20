@@ -39,12 +39,13 @@ function mux_file {
             echo "$MKV_FILE seems to be itself a muxed file ! Aborted."
         # Check if there are available subtitles for the current file
         elif ! [ -f $SRT_FR_FILE ] && ! [ -f $SRT_EN_FILE ]; then
-            echo "$MKV_FILE : no subtitles found ! Aborted."
+            echo "$MKV_FILE: no subtitles found ! Aborted."
         else
-            echo "Executed command : mkvmerge $MKVMERGE_CMD"
+            echo "Executed command: mkvmerge $MKVMERGE_CMD"
             eval "mkvmerge $MKVMERGE_CMD"
 
             # add permissions
+            echo "Updating permissions on the new muxed file..."
             eval "chmod 666 '$MKV_VOST_FILE'"
 
             # add the new mkv file to the multimedia server index
@@ -100,7 +101,7 @@ if [ $# -eq 1 ]; then
         MKV_FILE="$1"
         mux_file
     else
-        echo "$1 : File or directory not found !"
+        echo "$1: File or directory not found!"
         IFS="$OLDIFS"
         exit 1
     fi
@@ -108,7 +109,7 @@ elif [ $# -eq 0 ]; then
     MKV_PATH="."
     mux_directory
 else
-    echo "Use : mux [path to the files]"
+    echo "Use: mux <path to the files>"
     IFS="$OLDIFS"
     exit 1
 fi
@@ -117,7 +118,7 @@ unset MKV_PATH
 unset MKV_FILE
 IFS="$OLDIFS"
 
-echo "Done."
+echo "All Done."
 exit 0
 
 # END - MERGE SCRIPT
